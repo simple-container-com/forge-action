@@ -1,0 +1,123 @@
+name: 'Simple Forge Claude Workflow (Dockerless)'
+description: 'Execute Claude-powered code generation workflows for GitHub issues without Docker containers'
+author: 'simple-container-com'
+
+branding:
+  icon: 'code'
+  color: 'blue'
+
+inputs:
+  job_id:
+    description: 'Job ID from the queue'
+    required: true
+  issue_id:
+    description: 'GitHub issue ID'
+    required: true
+  service_url:
+    description: 'Simple Forge service URL'
+    required: true
+    default: 'https://forge.simple-container.com'
+  branch:
+    description: 'Target branch for changes'
+    required: true
+  anthropic_api_key:
+    description: 'Anthropic API key for Claude'
+    required: true
+  simple_forge_api_key:
+    description: 'Simple Forge API key'
+    required: true
+  github_token:
+    description: 'GitHub token for repository access'
+    required: true
+  script_version:
+    description: 'Version of scripts to use (default: latest)'
+    required: false
+    default: 'latest'
+  skip_dependency_install:
+    description: 'Skip automatic dependency installation (default: false)'
+    required: false
+    default: 'false'
+
+outputs:
+  status:
+    description: 'Workflow execution status'
+    value: ${{ steps.execute_workflow.outputs.status }}
+  branch:
+    description: 'Branch where changes were made'
+    value: ${{ inputs.branch }}
+  workflow_url:
+    description: 'URL to the workflow run'
+    value: ${{ steps.execute_workflow.outputs.workflow_url }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup environment
+      shell: bash
+      run: |
+        echo "🔧 Setting up Simple Forge environment..."
+        export SIMPLE_FORGE_WORK_DIR="${GITHUB_WORKSPACE}/.simple-forge"
+        mkdir -p "$SIMPLE_FORGE_WORK_DIR"
+        echo "SIMPLE_FORGE_WORK_DIR=$SIMPLE_FORGE_WORK_DIR" >> $GITHUB_ENV
+        echo "✅ Environment setup complete"
+
+    - name: Detect platform
+      shell: bash
+      run: |
+        echo "🔍 Detecting platform..."
+        chmod +x "${{ github.action_path }}/scripts/detect-platform.sh"
+        "${{ github.action_path }}/scripts/detect-platform.sh"
+
+    - name: Install dependencies
+      if: inputs.skip_dependency_install != 'true'
+      shell: bash
+      run: |
+        echo "📦 Installing dependencies..."
+        chmod +x "${{ github.action_path }}/scripts/install-dependencies.sh"
+        "${{ github.action_path }}/scripts/install-dependencies.sh"
+
+    - name: Acquire workflow scripts
+      shell: bash
+      run: |
+        echo "📥 Acquiring workflow scripts..."
+        chmod +x "${{ github.action_path }}/scripts/acquire-scripts.sh"
+        "${{ github.action_path }}/scripts/acquire-scripts.sh" \
+          "${{ inputs.script_version }}"
+
+    - name: Execute workflow
+      id: execute_workflow
+      shell: bash
+      env:
+        JOB_ID: ${{ inputs.job_id }}
+        ISSUE_ID: ${{ inputs.issue_id }}
+        SERVICE_URL: ${{ inputs.service_url }}
+        BRANCH: ${{ inputs.branch }}
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
+        SIMPLE_FORGE_API_KEY: ${{ inputs.simple_forge_api_key }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        API_URL: ${{ inputs.service_url }}
+        STREAMING_API_URL: ${{ inputs.service_url }}
+        API_KEY: ${{ inputs.simple_forge_api_key }}
+      run: |
+        echo "🚀 Executing Simple Forge workflow..."
+        echo "🔍 DEBUG: Input validation..."
+        echo "  simple_forge_api_key input: $([ -n '${{ inputs.simple_forge_api_key }}' ] && echo '[SET]' || echo '[EMPTY]')"
+        echo "  API_KEY env var: $([ -n "$API_KEY" ] && echo "[SET - ${#API_KEY} chars]" || echo "[EMPTY]")"
+        chmod +x "${{ github.action_path }}/scripts/orchestrate-workflow.sh"
+        "${{ github.action_path }}/scripts/orchestrate-workflow.sh" \
+          "${{ inputs.job_id }}" \
+          "${{ inputs.issue_id }}" \
+          "${{ inputs.service_url }}" \
+          "${{ inputs.branch }}" \
+          "${{ github.repository }}" \
+          "${{ github.run_id }}" \
+          "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+          "${{ inputs.simple_forge_api_key }}"
+
+    - name: Cleanup
+      if: always()
+      shell: bash
+      run: |
+        echo "🧹 Cleaning up..."
+        chmod +x "${{ github.action_path }}/scripts/cleanup.sh"
+        "${{ github.action_path }}/scripts/cleanup.sh" || true

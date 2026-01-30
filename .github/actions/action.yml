@@ -1,0 +1,54 @@
+name: 'Simple Forge Claude Workflow'
+description: 'Execute Claude-powered code generation workflows for GitHub issues'
+author: 'simple-container-com'
+
+branding:
+  icon: 'code'
+  color: 'blue'
+
+inputs:
+  job_id:
+    description: 'Job ID from the queue'
+    required: true
+  issue_id:
+    description: 'GitHub issue ID'
+    required: true
+  service_url:
+    description: 'Simple Forge service URL'
+    required: true
+    default: 'https://forge.simple-container.com'
+  branch:
+    description: 'Target branch for changes'
+    required: true
+  anthropic_api_key:
+    description: 'Anthropic API key for Claude'
+    required: true
+  simple_forge_api_key:
+    description: 'Simple Forge API key'
+    required: true
+  github_token:
+    description: 'GitHub token for repository access'
+    required: true
+
+outputs:
+  status:
+    description: 'Workflow execution status'
+  branch:
+    description: 'Branch where changes were made'
+  workflow_url:
+    description: 'URL to the workflow run'
+
+runs:
+  using: 'docker'
+  image: 'docker://simplecontainer/forge-action:latest'
+  env:
+    JOB_ID: ${{ inputs.job_id }}
+    ISSUE_ID: ${{ inputs.issue_id }}
+    SERVICE_URL: ${{ inputs.service_url }}
+    BRANCH: ${{ inputs.branch }}
+    ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
+    SIMPLE_FORGE_API_KEY: ${{ inputs.simple_forge_api_key }}
+    GITHUB_TOKEN: ${{ inputs.github_token }}
+    GITHUB_REPOSITORY: ${{ github.repository }}
+    GITHUB_RUN_ID: ${{ github.run_id }}
+    GITHUB_SERVER_URL: ${{ github.server_url }}
