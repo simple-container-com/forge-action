@@ -10,7 +10,7 @@ echo "Acquiring workflow scripts (version: $SCRIPT_VERSION)..."
 # Determine script version
 if [ "$SCRIPT_VERSION" = "latest" ] || [ -z "$SCRIPT_VERSION" ]; then
     echo "Resolving latest version..."
-    SCRIPT_VERSION=$(curl -s https://api.github.com/repos/simple-container-com/simple-forge/releases/latest | jq -r .tag_name 2>/dev/null || echo "")
+    SCRIPT_VERSION=$(curl -s https://api.github.com/repos/simple-container-com/simple-forge-action/releases/latest | jq -r .tag_name 2>/dev/null || echo "")
     if [ -z "$SCRIPT_VERSION" ] || [ "$SCRIPT_VERSION" = "null" ]; then
         echo "Warning: Could not determine latest version, using 'main' branch"
         SCRIPT_VERSION="main"
