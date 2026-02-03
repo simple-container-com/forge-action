@@ -15,8 +15,13 @@ inputs:
     required: true
   service_url:
     description: 'Simple Forge service URL'
-    required: true
+    required: false
     default: 'https://forge.simple-container.com'
+  model_name:
+    description: 'Claude model to use for generation'
+    required: false
+    type: string
+    default: 'claude-sonnet-4-5'
   branch:
     description: 'Target branch for changes'
     required: true
@@ -46,6 +51,7 @@ runs:
     ISSUE_ID: ${{ inputs.issue_id }}
     SERVICE_URL: ${{ inputs.service_url }}
     BRANCH: ${{ inputs.branch }}
+    MODEL_NAME: ${{ inputs.model_name }}
     ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
     SIMPLE_FORGE_API_KEY: ${{ inputs.simple_forge_api_key }}
     GITHUB_TOKEN: ${{ inputs.github_token }}

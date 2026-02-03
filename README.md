@@ -11,11 +11,12 @@ Execute Claude-powered code generation workflows for GitHub issues with Simple F
 
 ```yaml
 - name: Run Simple Forge
-  uses: simple-container-com/forge-action@v1
+  uses: simple-container-com/forge-action/.github/actions@v1
   with:
     job_id: ${{ inputs.job_id }}
     issue_id: ${{ inputs.issue_id }}
     service_url: 'https://forge.simple-container.com'
+    model_name: 'claude-sonnet-4-5'
     branch: ${{ inputs.branch }}
     anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
     simple_forge_api_key: ${{ secrets.SIMPLE_FORGE_API_KEY }}
@@ -26,7 +27,7 @@ Execute Claude-powered code generation workflows for GitHub issues with Simple F
 
 ```yaml
 - name: Run Simple Forge (Dockerless)
-  uses: simple-container-com/forge-action/dockerless@v1
+  uses: simple-container-com/forge-action/.github/actions/dockerless@v1
   with:
     job_id: ${{ inputs.job_id }}
     issue_id: ${{ inputs.issue_id }}
@@ -59,7 +60,8 @@ The main action that runs in a pre-built Docker container with all dependencies 
 |------------------------|----------------------------------------------------|----------|--------------------------------------|
 | `job_id`               | Job ID from the Simple Forge queue                 | ✅        | -                                    |
 | `issue_id`             | GitHub issue ID to process                         | ✅        | -                                    |
-| `service_url`          | Simple Forge service URL                           | ✅        | `https://forge.simple-container.com` |
+| `service_url`          | Simple Forge service URL                           | ❌        | `https://forge.simple-container.com` |
+| `model_name`           | Claude model to use for generation                 | ❌        | `claude-sonnet-4-5`                  |
 | `branch`               | Target branch for changes                          | ✅        | -                                    |
 | `anthropic_api_key`    | Anthropic API key for Claude                       | ✅        | -                                    |
 | `simple_forge_api_key` | Simple Forge API key                               | ✅        | -                                    |
@@ -83,7 +85,7 @@ A composite action that runs without Docker containers, extracting scripts from 
 |---------------------------|----------------------------------------------------|----------|--------------------------------------|
 | `job_id`                  | Job ID from the Simple Forge queue                 | ✅        | -                                    |
 | `issue_id`                | GitHub issue ID to process                         | ✅        | -                                    |
-| `service_url`             | Simple Forge service URL                           | ✅        | `https://forge.simple-container.com` |
+| `service_url`             | Simple Forge service URL                           | ❌        | `https://forge.simple-container.com` |
 | `branch`                  | Target branch for changes                          | ✅        | -                                    |
 | `anthropic_api_key`       | Anthropic API key for Claude                       | ✅        | -                                    |
 | `simple_forge_api_key`    | Simple Forge API key                               | ✅        | -                                    |
@@ -128,11 +130,12 @@ jobs:
     
     steps:
     - name: Run Simple Forge
-      uses: simple-container-com/forge-action@v1
+      uses: simple-container-com/forge-action/.github/actions@v1
       with:
         job_id: ${{ inputs.job_id }}
         issue_id: ${{ inputs.issue_id }}
         service_url: 'https://forge.simple-container.com'
+        model_name: 'claude-sonnet-4-5'
         branch: ${{ inputs.branch }}
         anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
         simple_forge_api_key: ${{ secrets.SIMPLE_FORGE_API_KEY }}
@@ -187,7 +190,7 @@ jobs:
         go-version: '1.22'
         
     - name: Run Simple Forge (Dockerless)
-      uses: simple-container-com/forge-action/dockerless@v1
+      uses: simple-container-com/forge-action/.github/actions/dockerless@v1
       with:
         job_id: ${{ inputs.job_id }}
         issue_id: ${{ inputs.issue_id }}
@@ -263,7 +266,7 @@ Both actions provide structured outputs for monitoring:
 ```yaml
 - name: Run Simple Forge
   id: forge
-  uses: simple-container-com/forge-action@v1
+  uses: simple-container-com/forge-action/.github/actions@v1
   with:
     # ... inputs
 
