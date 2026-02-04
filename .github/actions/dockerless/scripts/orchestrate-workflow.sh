@@ -51,6 +51,14 @@ handle_error() {
     exit "$exit_code"
 }
 
+# Step 0: Validate GitHub token
+echo ""
+echo "🔍 Step 0: Validating GitHub token..."
+if ! "$SCRIPTS_DIR/validate-github-token.sh" "$GITHUB_REPOSITORY"; then
+    handle_error "validate-github-token" $?
+fi
+echo "✅ Token validation complete"
+
 # Step 1: Setup branch
 echo ""
 echo "📌 Step 1: Setting up branch..."
