@@ -97,12 +97,23 @@ runs:
         echo "🔐 Configuring git authentication..."
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Use the x-access-token format that we validated works
+        git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+        
+        # Also set up credential helper as backup
         git config --global credential.helper store
-        echo "https://${GITHUB_TOKEN}@github.com" > ~/.git-credentials
-        # Also set the remote URL with token for current repo if it exists
+        echo "https://x-access-token:${GITHUB_TOKEN}@github.com" > ~/.git-credentials
+        
+        # Set remote URL for current repo if it exists
         if [ -d ".git" ]; then
-          git remote set-url origin "https://${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" || true
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" || true
         fi
+        
+        # Debug: Show git configuration
+        echo "Debug: Git URL rewrite config:"
+        git config --get-regexp url || echo "No URL config found"
+        
         echo "✅ Git authentication configured"
 
     - name: Execute workflow
