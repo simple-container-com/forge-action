@@ -89,6 +89,22 @@ runs:
         "${{ github.action_path }}/scripts/acquire-scripts.sh" \
           "${{ inputs.script_version }}"
 
+    - name: Configure Git Authentication
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+      run: |
+        echo "🔐 Configuring git authentication..."
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global credential.helper store
+        echo "https://${GITHUB_TOKEN}@github.com" > ~/.git-credentials
+        # Also set the remote URL with token for current repo if it exists
+        if [ -d ".git" ]; then
+          git remote set-url origin "https://${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" || true
+        fi
+        echo "✅ Git authentication configured"
+
     - name: Execute workflow
       id: execute_workflow
       shell: bash
