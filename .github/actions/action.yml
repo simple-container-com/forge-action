@@ -28,6 +28,10 @@ inputs:
   anthropic_api_key:
     description: 'Anthropic API key for Claude'
     required: true
+  anthropic_base_url:
+    description: 'Anthropic Base URL for Claude'
+    default: 'https://api.anthropic.com'
+    required: false
   simple_forge_api_key:
     description: 'Simple Forge API key'
     required: true
@@ -53,6 +57,7 @@ runs:
     BRANCH: ${{ inputs.branch }}
     MODEL_NAME: ${{ inputs.model_name }}
     ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
+    ANTHROPIC_BASE_URL: ${{ inputs.anthropic_base_url }}
     SIMPLE_FORGE_API_KEY: ${{ inputs.simple_forge_api_key }}
     GITHUB_TOKEN: ${{ inputs.github_token }}
     GITHUB_REPOSITORY: ${{ github.repository }}
