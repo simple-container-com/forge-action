@@ -63,6 +63,16 @@ else
     exit 1
 fi
 
+# Copy upload-handoff-file.sh from repository if available
+if [ -f "$GITHUB_WORKSPACE/.github/scripts/upload-handoff-file.sh" ]; then
+    echo "Copying upload-handoff-file.sh from repository..."
+    cp "$GITHUB_WORKSPACE/.github/scripts/upload-handoff-file.sh" "$SCRIPTS_DIR/"
+    chmod +x "$SCRIPTS_DIR/upload-handoff-file.sh"
+    echo "✅ upload-handoff-file.sh copied successfully"
+else
+    echo "⚠️  upload-handoff-file.sh not found in repository, skipping"
+fi
+
 # Verify scripts are available
 if [ ! -f "$SCRIPTS_DIR/setup-claude.sh" ] || [ ! -f "$SCRIPTS_DIR/execute-claude.sh" ]; then
     echo "❌ Error: Critical scripts are missing!"

@@ -152,9 +152,24 @@ if ! "$SCRIPTS_DIR/commit-and-push.sh" \
 fi
 echo "✅ Changes committed and pushed"
 
-# Step 10: Update context back to service
+# Step 10: Upload handoff file (if present)
 echo ""
-echo "📤 Step 10: Updating context to service..."
+echo "📤 Step 10: Uploading handoff file (if present)..."
+if [ -f "$SCRIPTS_DIR/upload-handoff-file.sh" ]; then
+    if ! "$SCRIPTS_DIR/upload-handoff-file.sh" \
+        "$JOB_ID" \
+        "$SERVICE_URL" \
+        "$API_KEY"; then
+        echo "⚠️  Warning: Failed to upload handoff file"
+    fi
+else
+    echo "⚠️  Warning: upload-handoff-file.sh not found, skipping handoff upload"
+fi
+echo "✅ Handoff upload step complete"
+
+# Step 11: Update context back to service
+echo ""
+echo "📤 Step 11: Updating context to service..."
 if ! "$SCRIPTS_DIR/update-context.sh" \
     "$JOB_ID" \
     "$SERVICE_URL" \
@@ -164,9 +179,9 @@ if ! "$SCRIPTS_DIR/update-context.sh" \
 fi
 echo "✅ Context updated"
 
-# Step 11: Job completion summary
+# Step 12: Job completion summary
 echo ""
-echo "📋 Step 11: Generating job completion summary..."
+echo "📋 Step 12: Generating job completion summary..."
 if ! "$SCRIPTS_DIR/job-completion-summary.sh" \
     "$JOB_ID" \
     "$ISSUE_ID" \
