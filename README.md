@@ -19,6 +19,7 @@ Execute Claude-powered code generation workflows for GitHub issues with Simple F
     model_name: 'claude-sonnet-4-5'
     branch: ${{ inputs.branch }}
     anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+    anthropic_base_url: ${{ secrets.ANTHROPIC_BASE_URL || format('{0}/ai', inputs.service_url || 'https://forge.simple-container.com') || 'https://api.anthropic.com' }}
     simple_forge_api_key: ${{ secrets.SIMPLE_FORGE_API_KEY }}
     github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 ```
@@ -34,6 +35,7 @@ Execute Claude-powered code generation workflows for GitHub issues with Simple F
     service_url: 'https://forge.simple-container.com'
     branch: ${{ inputs.branch }}
     anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+    anthropic_base_url: ${{ secrets.ANTHROPIC_BASE_URL || format('{0}/ai', inputs.service_url || 'https://forge.simple-container.com') || 'https://api.anthropic.com' }}
     simple_forge_api_key: ${{ secrets.SIMPLE_FORGE_API_KEY }}
     github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
     script_version: 'latest'
@@ -64,6 +66,7 @@ The main action that runs in a pre-built Docker container with all dependencies 
 | `model_name`           | Claude model to use for generation                 | ❌        | `claude-sonnet-4-5`                  |
 | `branch`               | Target branch for changes                          | ✅        | -                                    |
 | `anthropic_api_key`    | Anthropic API key for Claude                       | ✅        | -                                    |
+| `anthropic_base_url`   | Anthropic API base URL (supports AI gateway)       | ❌        | `https://api.anthropic.com`          |
 | `simple_forge_api_key` | Simple Forge API key                               | ✅        | -                                    |
 | `github_token`         | GitHub Personal Access Token for repository access | ✅        | -                                    |
 
@@ -88,6 +91,7 @@ A composite action that runs without Docker containers, extracting scripts from 
 | `service_url`             | Simple Forge service URL                           | ❌        | `https://forge.simple-container.com` |
 | `branch`                  | Target branch for changes                          | ✅        | -                                    |
 | `anthropic_api_key`       | Anthropic API key for Claude                       | ✅        | -                                    |
+| `anthropic_base_url`      | Anthropic API base URL (supports AI gateway)       | ❌        | `https://api.anthropic.com`          |
 | `simple_forge_api_key`    | Simple Forge API key                               | ✅        | -                                    |
 | `github_token`            | GitHub Personal Access Token for repository access | ✅        | -                                    |
 | `script_version`          | Version of scripts to use                          | ❌        | `latest`                             |
@@ -122,6 +126,24 @@ on:
         description: 'Target branch for changes'
         required: true
         type: string
+      service_url:
+        description: 'Simple Forge service URL'
+        required: false
+        type: string
+        default: 'https://forge.simple-container.com'
+      model_name:
+        description: 'Claude model to use for generation'
+        required: false
+        default: 'claude-sonnet-4-5'
+      script_version:
+        description: 'Script version to use'
+        required: false
+        type: string
+        default: 'latest'
+      api_token:
+        description: 'JWT token for both AI gateway and forge service API access'
+        required: false
+        type: string
 
 jobs:
   generate-code:
@@ -134,11 +156,12 @@ jobs:
       with:
         job_id: ${{ inputs.job_id }}
         issue_id: ${{ inputs.issue_id }}
-        service_url: 'https://forge.simple-container.com'
-        model_name: 'claude-sonnet-4-5'
+        service_url: "${{ inputs.service_url || 'https://forge.simple-container.com' }}"
+        model_name: ${{ inputs.model_name }}
         branch: ${{ inputs.branch }}
-        anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-        simple_forge_api_key: ${{ secrets.SIMPLE_FORGE_API_KEY }}
+        anthropic_api_key: ${{ inputs.api_token || secrets.ANTHROPIC_API_KEY }}
+        anthropic_base_url: ${{ secrets.ANTHROPIC_BASE_URL || format('{0}/ai', inputs.service_url || 'https://forge.simple-container.com') || 'https://api.anthropic.com' }}
+        simple_forge_api_key: ${{ inputs.api_token || secrets.SIMPLE_FORGE_API_KEY }}
         github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 ```
 
@@ -161,11 +184,24 @@ on:
         description: 'Target branch for changes'
         required: true
         type: string
+      service_url:
+        description: 'Simple Forge service URL'
+        required: false
+        type: string
+        default: 'https://forge.simple-container.com'
+      model_name:
+        description: 'Claude model to use for generation'
+        required: false
+        default: 'claude-sonnet-4-5'
       script_version:
         description: 'Script version to use'
         required: false
         type: string
         default: 'latest'
+      api_token:
+        description: 'JWT token for both AI gateway and forge service API access'
+        required: false
+        type: string
 
 jobs:
   generate-code:
@@ -194,30 +230,63 @@ jobs:
       with:
         job_id: ${{ inputs.job_id }}
         issue_id: ${{ inputs.issue_id }}
-        service_url: 'https://forge.simple-container.com'
+        service_url: "${{ inputs.service_url || 'https://forge.simple-container.com' }}"
         branch: ${{ inputs.branch }}
-        anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-        simple_forge_api_key: ${{ secrets.SIMPLE_FORGE_API_KEY }}
+        model_name: ${{ inputs.model_name }}
+        anthropic_api_key: ${{ inputs.api_token || secrets.ANTHROPIC_API_KEY }}
+        anthropic_base_url: ${{ secrets.ANTHROPIC_BASE_URL || format('{0}/ai', inputs.service_url || 'https://forge.simple-container.com') || 'https://api.anthropic.com' }}
+        simple_forge_api_key: ${{ inputs.api_token || secrets.SIMPLE_FORGE_API_KEY }}
         github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         script_version: ${{ inputs.script_version }}
         skip_dependency_install: 'false'
 ```
 
-## 🔐 Required Secrets
+## 🔐 Secrets Configuration
 
 Configure these secrets in your repository settings:
 
-| Secret                  | Description                                         | Required For |
-|-------------------------|-----------------------------------------------------|--------------|
-| `ANTHROPIC_API_KEY`     | Your Anthropic API key for Claude access            | Both actions |
-| `SIMPLE_FORGE_API_KEY`  | Your Simple Forge service API key                   | Both actions |
-| `PERSONAL_ACCESS_TOKEN` | GitHub Personal Access Token with repository access | Both actions |
+| Secret                  | Description                                                                       | Required   |
+|-------------------------|-----------------------------------------------------------------------------------|------------|
+| `PERSONAL_ACCESS_TOKEN` | GitHub Personal Access Token with repository access                               | ✅ Required |
+| `ANTHROPIC_API_KEY`     | Your Anthropic API key for Claude access (fallback when `api_token` not provided) | ❌ Optional |
+| `SIMPLE_FORGE_API_KEY`  | Your Simple Forge service API key (fallback when `api_token` not provided)        | ❌ Optional |
+| `ANTHROPIC_BASE_URL`    | Custom Anthropic API base URL (for AI gateways)                                   | ❌ Optional |
 
 ### Setting up Secrets
 
 1. Go to your repository **Settings** → **Secrets and variables** → **Actions**
 2. Click **New repository secret**
-3. Add each required secret with the appropriate value
+3. Add the required `PERSONAL_ACCESS_TOKEN` and any optional secrets you need
+
+#### PERSONAL_ACCESS_TOKEN Requirements
+
+Your GitHub Personal Access Token must have the following permissions:
+- **Contents**: Write (to create/modify files)
+- **Pull requests**: Write (to create pull requests)
+- **Metadata**: Read (to access repository information)
+- **Actions**: Read (for workflow access)
+
+For classic tokens, ensure these scopes are selected:
+- `repo` (full repository access)
+- `workflow` (if updating workflow files)
+
+#### API Credentials
+
+**Primary Method: `api_token` workflow input (Recommended)**
+- Pass a JWT token that works for both Anthropic and Simple Forge APIs
+- Provide `api_token` as a workflow input when triggering the workflow
+- No repository secrets needed for API access
+
+**Fallback Method: Individual secrets (Optional)**
+- `ANTHROPIC_API_KEY` and `SIMPLE_FORGE_API_KEY` are used only when `api_token` is not provided
+- Useful for backward compatibility or alternative authentication methods
+
+#### ANTHROPIC_BASE_URL (Optional)
+
+This secret allows you to use AI gateways or custom Anthropic API endpoints. If not provided, the action will automatically use:
+1. Your custom `ANTHROPIC_BASE_URL` if set
+2. The Simple Forge AI gateway at `{service_url}/ai`
+3. The default Anthropic API at `https://api.anthropic.com`
 
 ## 🛠️ Setup Requirements
 
