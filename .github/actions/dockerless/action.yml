@@ -87,11 +87,12 @@ runs:
 
     - name: Acquire workflow scripts
       shell: bash
+      env:
+        SCRIPT_VERSION: ${{ inputs.script_version }}
       run: |
         echo "📥 Acquiring workflow scripts..."
         chmod +x "${{ github.action_path }}/scripts/acquire-scripts.sh"
-        "${{ github.action_path }}/scripts/acquire-scripts.sh" \
-          "${{ inputs.script_version }}"
+        "${{ github.action_path }}/scripts/acquire-scripts.sh" "$SCRIPT_VERSION"
 
     - name: Configure Git Authentication
       shell: bash
@@ -139,18 +140,17 @@ runs:
       run: |
         echo "🚀 Executing Simple Forge workflow..."
         echo "🔍 DEBUG: Input validation..."
-        echo "  simple_forge_api_key input: $([ -n '${{ inputs.simple_forge_api_key }}' ] && echo '[SET]' || echo '[EMPTY]')"
         echo "  API_KEY env var: $([ -n "$API_KEY" ] && echo "[SET - ${#API_KEY} chars]" || echo "[EMPTY]")"
         chmod +x "${{ github.action_path }}/scripts/orchestrate-workflow.sh"
         "${{ github.action_path }}/scripts/orchestrate-workflow.sh" \
-          "${{ inputs.job_id }}" \
-          "${{ inputs.issue_id }}" \
-          "${{ inputs.service_url }}" \
-          "${{ inputs.branch }}" \
+          "$JOB_ID" \
+          "$ISSUE_ID" \
+          "$SERVICE_URL" \
+          "$BRANCH" \
           "${{ github.repository }}" \
           "${{ github.run_id }}" \
           "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-          "${{ inputs.simple_forge_api_key }}"
+          "$SIMPLE_FORGE_API_KEY"
 
     - name: Cleanup
       if: always()
