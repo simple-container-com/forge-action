@@ -1,0 +1,14 @@
+name: Semgrep
+on:
+  push:
+    branches: [v1]
+  pull_request:
+    branches: [v1]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  semgrep:
+    uses: simple-container-com/actions/.github/workflows/semgrep.yml@main
+    permissions:
+      contents: read
